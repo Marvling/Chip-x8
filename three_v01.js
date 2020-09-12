@@ -31,7 +31,9 @@ function resizeRendererToDisplaySize(renderer) {
     const pixelRatio = window.devicePixelRatio;
     const width = canvas.clientWidth * pixelRatio | 0;
     const height = canvas.clientHeight * pixelRatio | 0;
-    const needResize = canvas.width !== width || canvas.height !== height;
+    const needResize = 
+    canvas.width !== document.getElementById('main').offsetWidth || 
+    canvas.height !== document.getElementById('main').offsetHeight;
     if (needResize) {
         renderer.setSize(width, height, false);
     }
@@ -46,11 +48,21 @@ scene.add(light);
 
 //SCENE
 const geometry = new THREE.BoxGeometry(1.99, 0.1, 4.97);
-const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 });  // greenish blue
+const material = new THREE.MeshPhongMaterial({ color: 0xF1FA98 });
 
 const cube = new THREE.Mesh(geometry, material);
+
 scene.add(cube);
 renderer.render(scene, camera);
+
+//HELPERS
+const helperAxes = new THREE.AxesHelper();
+helperAxes.material.depthTest = false;
+helperAxes.renderOrder = 1;
+cube.add(helperAxes);
+
+const helperGrid = new THREE.GridHelper(20, 10);
+scene.add(helperGrid);
 
 //RENDERING
 function render(time) {

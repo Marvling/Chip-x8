@@ -1,4 +1,5 @@
 import * as THREE from './Modules/three.module.js';
+import { GLTFLoader } from './Modules/GLTFLoader.js'
 import { OrbitControls } from './Modules/OrbitControls.js';
 
 
@@ -31,9 +32,9 @@ function resizeRendererToDisplaySize(renderer) {
     const pixelRatio = window.devicePixelRatio;
     const width = canvas.clientWidth * pixelRatio | 0;
     const height = canvas.clientHeight * pixelRatio | 0;
-    const needResize = 
-    canvas.width !== document.getElementById('main').offsetWidth || 
-    canvas.height !== document.getElementById('main').offsetHeight;
+    const needResize =
+        canvas.width !== document.getElementById('main').offsetWidth ||
+        canvas.height !== document.getElementById('main').offsetHeight;
     if (needResize) {
         renderer.setSize(width, height, false);
     }
@@ -47,10 +48,20 @@ light.position.set(-1, 2, 4);
 scene.add(light);
 
 //SCENE
-const geometry = new THREE.BoxGeometry(1.99, 0.1, 4.97);
-const material = new THREE.MeshPhongMaterial({ color: 0xF1FA98 });
+const loaderTex = new THREE.TextureLoader();
+const loaderMesh = new GLTFLoader();
+const loaderJson = new THREE.ObjectLoader();
 
-const cube = new THREE.Mesh(geometry, material);
+const geometry = new THREE.BoxGeometry(1.99, 0.1, 4.97);
+
+const material = new THREE.MeshPhongMaterial({ color: 0xF1FA98 });
+const matChip = new THREE.MeshStandardMaterial({
+    color: 0xF1FA98,
+    roughness: 0.8,
+    metalness: 0.2,
+})
+
+const cube = new THREE.Mesh(geometry, matChip);
 
 scene.add(cube);
 renderer.render(scene, camera);

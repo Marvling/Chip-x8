@@ -1,5 +1,6 @@
 import * as THREE from './Modules/three.module.js';
-import { GLTFLoader } from './Modules/GLTFLoader.js'
+import { GLTFLoader } from './Modules/GLTFLoader.js';
+import {OBJLoader} from './Modules/OBJLoader.js'
 import { OrbitControls } from './Modules/OrbitControls.js';
 
 
@@ -48,8 +49,9 @@ scene.add(lightPoint);
 
 //SCENE
 const loaderTex = new THREE.TextureLoader();
-const loaderMesh = new GLTFLoader();
+const loaderGLTF = new GLTFLoader();
 const loaderJson = new THREE.ObjectLoader();
+const loaderObj = new OBJLoader();
 
 const geoChip = new THREE.BoxGeometry(1.99, 0.1, 4.97);
 

@@ -1,6 +1,4 @@
 import * as THREE from './Modules/three.module.js';
-import { GLTFLoader } from './Modules/GLTFLoader.js';
-import { OBJLoader } from './Modules/OBJLoader.js'
 import { OrbitControls } from './Modules/OrbitControls.js';
 import { GUI } from './Modules/dat.gui.module.js'
 
@@ -10,7 +8,7 @@ const canvas = document.querySelector('#main');
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setClearColor("#000000");
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xE5E5E5);
+scene.background = new THREE.Color(0x0d0d0d);
 
 //CAMERA
 const fov = 75;
@@ -40,21 +38,9 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 //LIGHTS
-class ColorGUIHelper {
-    constructor(object, prop) {
-        this.object = object;
-        this.prop = prop;
-    }
-    get value() {
-        return `#${this.object[this.prop].getHexString()}`;
-    }
-    set value(hexString) {
-        this.object[this.prop].set(hexString);
-    }
-}
 
 const colorAmbi = 0xFFFFFF;
-const intensityAmbient = 1;
+const intensityAmbient = 0.35;
 const lightAmbi = new THREE.AmbientLight(colorAmbi, intensityAmbient);
 scene.add(lightAmbi);
 
@@ -62,38 +48,23 @@ scene.add(lightAmbi);
 const colorDirectional = 0xFFFFFF;
 const intensityDirectional = 1;
 const lightDirectional = new THREE.DirectionalLight(colorDirectional, intensityDirectional);
-lightDirectional.position.set(0, 10, 0);
-lightDirectional.target.position.set(-5, 0, 0);
+lightDirectional.position.set(0, 1.5, 0.3);
+lightDirectional.target.position.set(0, 0, 0);
 scene.add(lightDirectional);
 scene.add(lightDirectional.target);
 
-const gui = new GUI();
-gui.addColor(new ColorGUIHelper(lightAmbi, 'color'), 'value').name('Ambient Color');
-gui.add(lightAmbi, 'intensity', 0, 2, 0.01);
-
-gui.addColor(new ColorGUIHelper(lightDirectional, 'color'), 'value').name('Directional Color');
-gui.add(lightDirectional, 'intensity', 0, 2, 0.01);
-gui.add(lightDirectional.target.position, 'x', -10, 10);
-gui.add(lightDirectional.target.position, 'z', -10, 10);
-gui.add(lightDirectional.target.position, 'y', 0, 10);
-
 //SCENE
 const loaderTex = new THREE.TextureLoader();
-const loaderGLTF = new GLTFLoader();
-const loaderJson = new THREE.ObjectLoader();
-const loaderObj = new OBJLoader();
-
 const geoChip = new THREE.BoxGeometry(1.99, 0.1, 4.97);
 
-const material = new THREE.MeshPhongMaterial({ color: 0xF1FA98 });
 const matChipBump = new THREE.MeshStandardMaterial({
-    color: 0xF1FA98,
-    bumpMap: loaderTex.load('./Assets/Chip_v2.jpg'),
+    color: 0x4a4a4a,
+    bumpMap: loaderTex.load('./Assets/Chip_v3.png'),
     roughness: 0.8,
     metalness: 0.2,
 });
 const matChip = new THREE.MeshStandardMaterial({
-    color: 0xF1FA98,
+    color: 0x4a4a4a,
     roughness: 0.8,
     metalness: 0.2,
 })
@@ -112,6 +83,7 @@ cube.rotation.x = Math.PI * 0.5;
 scene.add(cube);
 
 //HELPERS
+
 const helperAxes = new THREE.AxesHelper();
 helperAxes.material.depthTest = false;
 helperAxes.renderOrder = 1;
@@ -119,6 +91,53 @@ cube.add(helperAxes);
 
 const helperGrid = new THREE.GridHelper(20, 10);
 scene.add(helperGrid);
+
+const helperLight = new THREE.DirectionalLightHelper(lightDirectional);
+lightDirectional.add(helperLight);
+
+//GUI
+//mostly taken from https://threejsfundamentals.org/threejs/lessons/threejs-lights.html
+
+class ColorGUIHelper {
+    constructor(object, prop) {
+        this.object = object;
+        this.prop = prop;
+    }
+    get value() {
+        return `#${this.object[this.prop].getHexString()}`;
+    }
+    set value(hexString) {
+        this.object[this.prop].set(hexString);
+    }
+}
+function makeXYZGUI(gui, vector3, name, onChangeFn) { //Showing the direction of the light
+    const folder = gui.addFolder(name);
+    folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
+    folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
+    folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
+    folder.open();
+  }
+
+  function updateLight() {
+    lightDirectional.target.updateMatrixWorld();
+    helperLight.update();
+  }
+  updateLight();
+
+
+const gui = new GUI();
+gui.addColor(new ColorGUIHelper(matChip, 'color'), 'value').name('Chip Color');
+gui.addColor(new ColorGUIHelper(matChipBump, 'color'), 'value').name('Chip Color');
+
+
+gui.addColor(new ColorGUIHelper(lightAmbi, 'color'), 'value').name('Ambient Color');
+gui.add(lightAmbi, 'intensity', 0, 2, 0.01);
+
+gui.addColor(new ColorGUIHelper(lightDirectional, 'color'), 'value').name('Directional Color');
+gui.add(lightDirectional, 'intensity', 0, 2, 0.01);
+
+makeXYZGUI(gui, lightDirectional.position, 'position', updateLight);
+makeXYZGUI(gui, lightDirectional.target.position, 'target', updateLight);
 
 //RENDERING
 function render(time) {
@@ -129,10 +148,6 @@ function render(time) {
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
         camera.updateProjectionMatrix();
     }
-
-    // cube.rotation.x = time;
-    // cube.rotation.y = time;
-
 
     renderer.render(scene, camera);
 

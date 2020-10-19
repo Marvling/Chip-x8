@@ -1,5 +1,4 @@
 import * as THREE from './Modules/three.module.js';
-// import { OrbitControls } from './Modules/OrbitControls.js';
 import { GUI } from './Modules/dat.gui.module.js'
 
 
@@ -17,17 +16,11 @@ scene.background = new THREE.Color(0x0d0d0d);
 let targetRotationX = 0;
 let targetRotationXOnMouseDown = 0;
 
-let targetRotationY = 0;
-let targetRotationYOnMouseDown = 0;
-
 let mouseX = 0;
 let mouseXOnMouseDown = 0;
 
-let mouseY = 0;
-let mouseYOnMouseDown = 0;
-
-const windowHalfX = window.innerWidth / 2;
-const windowHalfY = window.innerHeight / 2;
+let windowHalfX = window.innerWidth / 2;
+let windowHalfY = window.innerHeight / 2;
 
 
 //CAMERA
@@ -39,11 +32,6 @@ const far = 100;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.z = 5;
 
-//Orbit Controls
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.target.set(0, 0, 0);
-// controls.update;
-
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const pixelRatio = window.devicePixelRatio;
@@ -54,6 +42,9 @@ function resizeRendererToDisplaySize(renderer) {
         canvas.height !== document.getElementById('main').offsetHeight;
     if (needResize) {
         renderer.setSize(width, height, false);
+
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
     }
     return needResize;
 }
@@ -164,7 +155,6 @@ makeXYZGUI(gui, lightDirectional.target.position, 'target', updateLight);
 document.addEventListener('mousedown', onDocumentMouseDown, false);
 document.addEventListener('touchstart', onDocumentTouchStart, false);
 document.addEventListener('touchmove', onDocumentTouchMove, false);
-window.addEventListener('resize', onWindowResize, false);
 
 function onDocumentMouseDown(event) {
     event.preventDefault();
@@ -220,17 +210,6 @@ function onDocumentTouchMove(event) {
     }
 }
 
-function onWindowResize() {
-    windowHalfX = window.innerWidth / 2;
-    windowHalfY = window.innerHeight / 2;
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-
 //RENDERING
 function render(time) {
     time *= 0.0005;
@@ -241,8 +220,8 @@ function render(time) {
         camera.updateProjectionMatrix();
     }
 
-    meshChip.rotation.z += (targetRotationX - meshChip.rotation.y) * 0.05;
-    // meshChip.rotation.x += (targetRotationY - meshChip.rotation.x) * 0.05;
+    //Rotate the object
+    meshChip.rotation.z += (targetRotationX - meshChip.rotation.z) * 0.05;
 
     renderer.render(scene, camera);
 

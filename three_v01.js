@@ -1,5 +1,6 @@
 import * as THREE from './Modules/three.module.js';
-import { GUI } from './Modules/dat.gui.module.js'
+import { GUI } from './Modules/dat.gui.module.js';
+import { GLTFLoader } from './Modules/GLTFLoader.js';
 
 
 //INIT
@@ -67,7 +68,16 @@ scene.add(lightDirectional.target);
 
 //SCENE
 const loaderTex = new THREE.TextureLoader();
+// const loaderGLTF = new GLTFLoader();
+
+// loaderGLTF.load('./models/test.gltf', function (gltf) {
+
+//     scene.add(gltf.scene);
+
+// });
+
 const geoChip = new THREE.BoxGeometry(1.99, 0.1, 4.97);
+
 
 const matChipBump = new THREE.MeshStandardMaterial({
     color: 0x4a4a4a,
@@ -76,7 +86,7 @@ const matChipBump = new THREE.MeshStandardMaterial({
     metalness: 0.2,
 });
 const matChip = new THREE.MeshStandardMaterial({
-    color: 0x4a4a4a,
+    color: matChipBump.color,
     roughness: 0.8,
     metalness: 0.2,
 })
@@ -138,8 +148,8 @@ updateLight();
 
 
 const gui = new GUI();
-gui.addColor(new ColorGUIHelper(matChip, 'color'), 'value').name('Chip Color');
-gui.addColor(new ColorGUIHelper(matChipBump, 'color'), 'value').name('Chip Color');
+gui.addColor(new ColorGUIHelper(matChip, 'color'), 'value').name('Chip Color Back');
+gui.addColor(new ColorGUIHelper(matChipBump, 'color'), 'value').name('Chip Color Front');
 
 
 gui.addColor(new ColorGUIHelper(lightAmbi, 'color'), 'value').name('Ambient Color');
@@ -170,7 +180,7 @@ function onDocumentMouseDown(event) {
 
 function onDocumentMouseMove(event) {
     mouseX = event.clientX - windowHalfX;
-    targetRotationX = targetRotationXOnMouseDown + (mouseX - mouseXOnMouseDown) * 0.02;
+    targetRotationX = targetRotationXOnMouseDown + (mouseX - mouseXOnMouseDown) * -0.02;
 
     // mouseY = event.clientY - windowHalfY;
     // targetRotationY = targetRotationYOnMouseDown + (mouseY - mouseYOnMouseDown) * 0.02;

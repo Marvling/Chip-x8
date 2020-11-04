@@ -1,14 +1,27 @@
 import * as THREE from './Modules/three.module.js';
-import { OrbitControls } from './Modules/OrbitControls.js';
 import { GUI } from './Modules/dat.gui.module.js'
 
 
 //INIT
 const canvas = document.querySelector('#main');
+
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setClearColor("#000000");
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d0d0d);
+
+
+// Object Rotation variables
+let targetRotationX = 0;
+let targetRotationXOnMouseDown = 0;
+
+let mouseX = 0;
+let mouseXOnMouseDown = 0;
+
+let windowHalfX = window.innerWidth / 2;
+let windowHalfY = window.innerHeight / 2;
+
 
 //CAMERA
 const fov = 75;
@@ -18,10 +31,6 @@ const far = 100;
 
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.z = 5;
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0, 0);
-controls.update;
 
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
@@ -33,6 +42,9 @@ function resizeRendererToDisplaySize(renderer) {
         canvas.height !== document.getElementById('main').offsetHeight;
     if (needResize) {
         renderer.setSize(width, height, false);
+
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
     }
     return needResize;
 }
@@ -77,17 +89,17 @@ const matFaces = [
     matChip
 ]
 
-const cube = new THREE.Mesh(geoChip, matFaces);
-cube.rotation.x = Math.PI * 0.5;
+const meshChip = new THREE.Mesh(geoChip, matFaces);
+meshChip.rotation.x = Math.PI * 0.5;
 
-scene.add(cube);
+scene.add(meshChip);
 
 //HELPERS
 
 const helperAxes = new THREE.AxesHelper();
 helperAxes.material.depthTest = false;
 helperAxes.renderOrder = 1;
-cube.add(helperAxes);
+meshChip.add(helperAxes);
 
 const helperGrid = new THREE.GridHelper(20, 10);
 scene.add(helperGrid);
@@ -116,13 +128,13 @@ function makeXYZGUI(gui, vector3, name, onChangeFn) { //Showing the direction of
     folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
     folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
     folder.open();
-  }
+}
 
-  function updateLight() {
+function updateLight() {
     lightDirectional.target.updateMatrixWorld();
     helperLight.update();
-  }
-  updateLight();
+}
+updateLight();
 
 
 const gui = new GUI();
@@ -139,6 +151,65 @@ gui.add(lightDirectional, 'intensity', 0, 2, 0.01);
 makeXYZGUI(gui, lightDirectional.position, 'position', updateLight);
 makeXYZGUI(gui, lightDirectional.target.position, 'target', updateLight);
 
+//Object roation listeners
+document.addEventListener('mousedown', onDocumentMouseDown, false);
+document.addEventListener('touchstart', onDocumentTouchStart, false);
+document.addEventListener('touchmove', onDocumentTouchMove, false);
+
+function onDocumentMouseDown(event) {
+    event.preventDefault();
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    document.addEventListener('mouseup', onDocumentMouseUp, false);
+    document.addEventListener('mouseout', onDocumentMouseOut, false);
+    mouseXOnMouseDown = event.clientX - windowHalfX;
+    targetRotationXOnMouseDown = targetRotationX;
+
+    // mouseYOnMouseDown = event.clientY - windowHalfY;
+    // targetRotationYOnMouseDown = targetRotationY;
+}
+
+function onDocumentMouseMove(event) {
+    mouseX = event.clientX - windowHalfX;
+    targetRotationX = targetRotationXOnMouseDown + (mouseX - mouseXOnMouseDown) * 0.02;
+
+    // mouseY = event.clientY - windowHalfY;
+    // targetRotationY = targetRotationYOnMouseDown + (mouseY - mouseYOnMouseDown) * 0.02;
+}
+
+function onDocumentMouseUp(event) {
+    document.removeEventListener('mousemove', onDocumentMouseMove, false);
+    document.removeEventListener('mouseup', onDocumentMouseUp, false);
+    document.removeEventListener('mouseout', onDocumentMouseOut, false);
+}
+
+function onDocumentMouseOut(event) {
+    document.removeEventListener('mousemove', onDocumentMouseMove, false);
+    document.removeEventListener('mouseup', onDocumentMouseUp, false);
+    document.removeEventListener('mouseout', onDocumentMouseOut, false);
+}
+
+function onDocumentTouchStart(event) {
+    if (event.touches.length == 1) {
+        event.preventDefault();
+        mouseXOnMouseDown = event.touches[0].pageX - windowHalfX;
+        targetRotationXOnMouseDown = targetRotationX;
+
+        // mouseYOnMouseDown = event.touches[0].pageY - windowHalfY;
+        // targetRotationYOnMouseDown = targetRotationY;
+    }
+}
+
+function onDocumentTouchMove(event) {
+    if (event.touches.length == 1) {
+        event.preventDefault();
+        mouseX = event.touches[0].pageX - windowHalfX;
+        targetRotationX = targetRotationXOnMouseDown + (mouseX - mouseXOnMouseDown) * 0.05;
+
+        // mouseY = event.touches[0].pageY - windowHalfY;
+        // targetRotationX = targetRotationXOnMouseDown + (mouseY - mouseYOnMouseDown) * 0.05;
+    }
+}
+
 //RENDERING
 function render(time) {
     time *= 0.0005;
@@ -148,6 +219,9 @@ function render(time) {
         camera.aspect = canvas.clientWidth / canvas.clientHeight;
         camera.updateProjectionMatrix();
     }
+
+    //Rotate the object
+    meshChip.rotation.z += (targetRotationX - meshChip.rotation.z) * 0.05;
 
     renderer.render(scene, camera);
 
